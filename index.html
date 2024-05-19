@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Classification Test</title>
+    <style>
+        body{
+            text-align: center;
+        }
+
+        p{
+            margin: 0;
+        }
+    </style>
+    <script>
+        async function checkMessage() {
+            const message = document.getElementById('message').value;
+            const response = await fetch('http://127.0.0.1:8000/check-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: message })
+            });
+            const data = await response.json();
+            const mess = document.getElementById('message-text').innerText = `message: ${data.message}`;
+            document.getElementById('result').innerText = `Classification: ${data.classification}`;
+            document.getElementById('message').value = "";
+            document.getElementById('message').focus()
+            var paragraph = document.createElement('p');
+            paragraph.textContent = `"${data.message}",${data.classification === "On-platform"? 0 : 1}`;
+            var history = document.getElementById('history');
+            history.appendChild(paragraph);
+        }
+
+        function copyDivContent() {
+        var divContent = document.getElementById('history').innerText;
+        var textarea = document.createElement('textarea');
+        textarea.value = divContent;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert("Content copied to clipboard!");
+    }
+    </script>
+</head>
+<body>
+    <h1>Message Classification Test</h1>
+    <form onsubmit="event.preventDefault(); checkMessage();">
+        <label for="message">Enter your message:</label><br>
+        <input type="text" id="message" name="message"><br><br>
+        <input type="submit" value="Classify">
+    </form>
+    <p id="message-text"></p>
+    <p id="result"></p>
+    <br>
+    <br>
+    <hr>
+    <h2>history:</h2>
+    <button onclick="copyDivContent()">Copy</button>
+    <br>
+    <br>
+    <div id="history">
+        
+    </div>
+</body>
+</html>
