@@ -2,12 +2,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-import tempfile
 import os
 
 # Load your dataset
@@ -24,8 +22,8 @@ test_labels = test_labels.tolist()
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 # Tokenize the data
-train_encodings = tokenizer(list(train_texts), truncation=True, padding=True, max_length=128)
-test_encodings = tokenizer(list(test_texts), truncation=True, padding=True, max_length=128)
+train_encodings = tokenizer(train_texts.to_list(), truncation=True, padding=True, max_length=128)
+test_encodings = tokenizer(test_texts.to_list(), truncation=True, padding=True, max_length=128)
 
 # Create dataset class
 class ConversationDataset(torch.utils.data.Dataset):
@@ -47,49 +45,65 @@ test_dataset = ConversationDataset(test_encodings, test_labels)
 # Load the model
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=2)
 
-# Define training arguments with a temporary directory for logging
-with tempfile.TemporaryDirectory() as tmp_dir:
-    training_args = TrainingArguments(
-        output_dir=tmp_dir,
-        num_train_epochs=3,
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
-        warmup_steps=500,
-        weight_decay=0.01,
-        logging_dir=None,  # Disable logging
-        evaluation_strategy="no",  # Disable evaluation during training
-        save_strategy="no",  # Disable model saving during training
-    )
+# Define training arguments with a persistent directory for logging
+model_dir = './model'
+os.makedirs(model_dir, exist_ok=True)
+training_args = TrainingArguments(
+    output_dir=model_dir,
+    num_train_epochs=3,
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
+    warmup_steps=500,
+    weight_decay=0.01,
+    logging_dir=model_dir,
+    evaluation_strategy="epoch",  # Enable evaluation during training
+    save_strategy="epoch",  # Enable model saving during training
+)
 
-    # Create Trainer
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=test_dataset,
-    )
+# Create Trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=test_dataset,
+)
 
-    # Train the model
-    trainer.train()
+# Train the model
+trainer.train()
 
-    # Evaluate the model
-    results = trainer.evaluate()
-    print(results)
+# Evaluate the model
+results = trainer.evaluate()
+print(results)
+
+# Calculate accuracy
+predictions = trainer.predict(test_dataset).predictions
+predicted_labels = torch.argmax(torch.tensor(predictions), dim=-1).tolist()
+
+correct_predictions = sum(1 for pred, true in zip(predicted_labels, test_labels) if pred == true)
+accuracy = correct_predictions / len(test_labels)
+print(f"Accuracy: {accuracy:.4f}")
+
+# Save the model
+model.save_pretrained(model_dir)
+tokenizer.save_pretrained(model_dir)
 
 # Inference function
 def predict(text):
-    inputs = tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=128)
-    outputs = model(**inputs)
-    predictions = torch.argmax(outputs.logits, dim=-1)
-    return predictions.item()
+    model.eval()
+    with torch.no_grad():
+        inputs = tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=128)
+        inputs = {key: val.to(model.device) for key, val in inputs.items()}
+        outputs = model(**inputs)
+        predictions = torch.argmax(outputs.logits, dim=-1)
+        return predictions.item()
 
 # FastAPI setup
 app = FastAPI()
 
-# Add CORS middleware
+# Add CORS middleware before route definitions
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this to specific origins in production
+    allow_origins=["http://127.0.0.1:5500", "http://localhost:3000"],  # Adjust this to specific origins in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

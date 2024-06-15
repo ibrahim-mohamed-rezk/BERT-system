@@ -1,0 +1,112 @@
+# Ignore Python bytecode and virtual environments
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyo
+.Python
+env/
+venv/
+ENV/
+VENV/
+.venv/
+.env/
+.python-version
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Ignore model files and temporary directories
+model/
+tmp/
+temp/
+*.tmp
+*.log
+*.bak
+
+# Ignore data files
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.db
+*.sqlite
+*.json
+
+# Ignore tokenizers and other transformers related files
+*.tokenizer_config.json
+*.vocab
+*.merges
+*.spiece
+*.model
+*.json
+
+# Ignore FastAPI and uvicorn related files
+*.sqlite3
+*.db
+*.log
+*.pid
+*.lock
+*.spec
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Ignore environment files
+*.env
+*.env.local
+.env.*
+.envrc
+!.env.example
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore IDE-specific files
+.idea/
+*.iml
+
+# Ignore build files
+build/
+dist/
+*.egg-info
+eggs/
+parts/
+sdist/
+develop-eggs/
+.installed.cfg
+*.egg
+
+# Ignore temporary files
+temp/
+tmp/
+*.log
+
+# Ignore compiled C extensions
+*.so
+
+# Ignore the FastAPI server log
+uvicorn.log
+
+# Ignore pytest cache
+.cache/
+
+# Ignore Jupyter checkpoints
+.ipynb_checkpoints
+
+# Ignore coverage files
+coverage/
+.coverage
+*.cover
+*.py,cover
+
+# Ignore profiling data
+*.prof
+*.dat
+.prof
+
+# Ignore HTML coverage report
+htmlcov/
