@@ -4,7 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 *.pyc
-*.pyo
 .Python
 env/
 venv/
@@ -17,13 +16,12 @@ VENV/
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints
 
-# Ignore model files and temporary directories
+# Ignore model files and directories
 model/
-tmp/
-temp/
-*.tmp
-*.log
-*.bak
+model/**
+
+# Ignore VSCode settings
+.vscode/
 
 # Ignore data files
 *.csv
@@ -62,9 +60,6 @@ Desktop.ini
 .envrc
 !.env.example
 
-# Ignore VSCode settings
-.vscode/
-
 # Ignore IDE-specific files
 .idea/
 *.iml
@@ -83,7 +78,9 @@ develop-eggs/
 # Ignore temporary files
 temp/
 tmp/
+*.tmp
 *.log
+*.bak
 
 # Ignore compiled C extensions
 *.so
@@ -93,9 +90,6 @@ uvicorn.log
 
 # Ignore pytest cache
 .cache/
-
-# Ignore Jupyter checkpoints
-.ipynb_checkpoints
 
 # Ignore coverage files
 coverage/
